@@ -5,47 +5,37 @@ import SearchBox from '../components/SearchBox';
 import Scroll from '../components/Scroll';
 import ErrorBoundary from "../components/ErrorBoundary";
 import './App.css';
-import { setSearchfield } from '../actions'
+import { requestRobots, setSearchfield } from '../actions'
 
 const mapStateToProps = state => {
     return {
         // comes from reducer
-        searchField: state.searchField
+        searchField: state.searchRobots.searchField,
+        robots: state.requestRobots.robots,
+        isPending: state.requestRobots.isPending,
+        error: state.requestRobots.error
     }
 }
 
 // dispatch triggers the action, action gets dispatch to reducer
 const mapDispatchToProps = (dispatch) => {
     return {
-        onSearchChange: (event) => dispatch(setSearchfield(event.target.value))
+        onSearchChange: (event) => dispatch(setSearchfield(event.target.value)),
+        onRequestRobots: () => dispatch(requestRobots())
     }
 }
 
 class App extends Component {
-    constructor() {
-        super();
-        this.state  = {
-            robots: []
-        }
-    }
-
     componentDidMount() {
-        fetch('https://jsonplaceholder.typicode.com/users')
-        .then(response => {
-            return response.json();
-        })
-        .then(users => {
-            this.setState({robots: users});
-        })
+        this.props.onRequestRobots();
     }
 
     render () {
-        const { robots } = this.state;
-        const { searchField, onSearchChange } = this.props;
+        const { searchField, onSearchChange, robots, isPending } = this.props;
         const filteredRobots = robots.filter(robot => {
             return robot.name.toLowerCase().includes(searchField.toLowerCase());
         });
-        return !robots.length ?
+        return isPending ?
             <h1 className='tc'>Loading</h1> :
             (
                 <div className='tc'>
@@ -57,8 +47,7 @@ class App extends Component {
                         </ErrorBoundary>
                     </Scroll>
                 </div>
-            );
-        
+            ); 
     }
 }
 
